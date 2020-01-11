@@ -39,6 +39,7 @@ body {
 .healthBar {
     position: absolute;
     transition: background-color 1s;
+    transition: opacity 1s;
 }
 
 .healthBar.full {
@@ -54,7 +55,7 @@ body {
 }
 
 .healthBar.empty {
-    background-color: rgba(0,0,0,0);
+    background-color: #000;
 }
 
 #arena {
@@ -89,15 +90,17 @@ body {
 
 #enemies .alive .healthBar {
     display: block;
-    top: -2px;
-    height: 2px;
+    top: 0;
+    height: 10%;
     z-index: -10;
+    transform: translate(0,-100%);
 
-    visibility: hidden;
+    transition: opacity 1s;
+    opacity: 0;
 }
 
 #enemies .alive:hover .healthBar {
-    visibility: visible;
+    opacity: 100%;
 }
 
 #enemies .exploding {
