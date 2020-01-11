@@ -121,7 +121,7 @@ window.addEventListener("load", () => {
 
             this.shootAngle = Math.random()*2*Math.PI;
             this.shootAngleInc = Math.random()*2*Math.PI;
-            this.shootFreq = Math.random()*50 + 10;
+            this.shootFreq = Math.random()*50 + 20;
             this.shootVelocity = Math.random()*0.5 + 0.05;
 
             this.nextShot = Math.random()*1000 + 100;
@@ -149,13 +149,13 @@ window.addEventListener("load", () => {
                 }
             } else {
                 this.nextShot -= dt;
-                if (this.nextShot <= 0) {
+                while (this.nextShot <= 0) {
 
                     var dx = this.shootVelocity*Math.sin(this.shootAngle);
                     var dy = this.shootVelocity*Math.cos(this.shootAngle);
                     game.spawns.push(new Bullet(
-                        this.x - dx*this.nextShot,
-                        this.y - dy*this.nextShot,
+                        this.x + dx*this.nextShot,
+                        this.y + dy*this.nextShot,
                         dx,
                         dy));
                     this.shootAngle += this.shootAngleInc;
