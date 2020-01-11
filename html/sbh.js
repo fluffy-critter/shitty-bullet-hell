@@ -1,7 +1,11 @@
 window.addEventListener("load", () => {
     "use strict";
 
-    var player;
+    var game;
+    var arena = document.getElementById("arena");
+    var enemies = document.getElementById("enemies");
+    var bullets = document.getElementById("bullets");
+    var score = document.getElementById("score");
 
     class Actor {
         constructor(element, container) {
@@ -81,10 +85,20 @@ window.addEventListener("load", () => {
     }
 
     class Bullet extends Actor {
-        constructor(bullets, dx, dy) {
+        constructor(x, y, dx, dy) {
             super("li", bullets);
+            this.x = x;
+            this.y = y;
+            this.dx = dx;
+            this.dy = dy;
 
-            this.element.addEventListener("mouseover", () => player.health.value--);
+            this.element.addEventListener("mouseover", () => game.health.value--);
+        }
+
+        update(dt) {
+            this.x += this.dx*dt;
+            this.y += this.dy*dt;
+            return super.update();
         }
     }
 
@@ -104,6 +118,13 @@ window.addEventListener("load", () => {
             this.hurting = false;
             this.element.addEventListener("mouseover", () => this.hurting = true);
             this.element.addEventListener("mouseout", () => this.hurting = false);
+
+            this.shootAngle = Math.random()*2*Math.PI;
+            this.shootAngleInc = Math.random()*2*Math.PI;
+            this.shootFreq = Math.random()*50 + 10;
+            this.shootVelocity = Math.random()*0.5 + 0.05;
+
+            this.nextShot = Math.random()*1000 + 100;
         }
 
         update(dt) {
@@ -111,15 +132,35 @@ window.addEventListener("load", () => {
             this.y += (Math.random() - Math.random())*dt*this.size/1000;
 
             if (this.hurting) {
-                player.score += Math.floor(dt*this.size);
+                game.score += Math.floor(dt*this.size);
                 this.healthBar.value -= dt/10;
                 if (this.healthBar.value <= 0) {
-                    player.score += Math.floor(this.healthBar.maxVal*10);
+                    game.score += Math.floor(this.healthBar.maxVal*10);
                     this.content = "💥";
                     this.element.setAttribute("class", "exploding");
                     this.element.style.setProperty("font-size", (this.size*5) + '%');
                     this.element.addEventListener("transitionend", () => this.die());
+                    game.killed++;
+                    game.spawns.push(new Enemy());
+                    if (game.killed % 5 == 0) {
+                        game.spawns.push(new Enemy());
+                    }
                     return false;
+                }
+            } else {
+                this.nextShot -= dt;
+                if (this.nextShot <= 0) {
+
+                    var dx = this.shootVelocity*Math.sin(this.shootAngle);
+                    var dy = this.shootVelocity*Math.cos(this.shootAngle);
+                    game.spawns.push(new Bullet(
+                        this.x/* - dx*this.nextShot*/,
+                        this.y/* - dy*this.nextShot*/,
+                        dx,
+                        dy));
+                    this.shootAngle += this.shootAngleInc;
+
+                    this.nextShot += this.shootFreq;
                 }
             }
 
@@ -127,26 +168,25 @@ window.addEventListener("load", () => {
         }
     }
 
-    var arena = document.getElementById("arena");
 
-    var enemies = document.getElementById("enemies");
-    var actors = [];
-
-    player = {
+    game = {
         score: 0,
         health: new HealthBar(arena, 1000),
+        spawns: [],
+        actors: [],
+        killed: 0,
     };
 
-    var lastSpawn = 0;
     function update(dt) {
-        lastSpawn += dt;
-        if (lastSpawn > 1000) {
-            actors.push(new Enemy());
-            lastSpawn = 0;
+        game.spawns.forEach(spawn => game.actors.push(spawn));
+        game.spawns = []
+
+        if (game.actors.length < 1) {
+            game.actors.push(new Enemy());
         }
 
-        actors = actors.filter(actor => actor.update(dt));
-        document.getElementById("score").innerText = player.score;
+        game.actors = game.actors.filter(actor => actor.update(dt));
+        score.innerText = game.score;
     }
 
     var lastTime = new Date();

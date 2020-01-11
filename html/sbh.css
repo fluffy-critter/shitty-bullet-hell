@@ -110,12 +110,11 @@ body {
     z-index: -5;
 }
 
-#bullets {
-    z-index: 100;
-}
 #bullets li {
+    z-index: 100;
     position: absolute;
     cursor: zoom-out;
+    font-size: x-large;
 }
 
 #score {
