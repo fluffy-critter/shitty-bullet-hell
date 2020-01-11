@@ -154,8 +154,8 @@ window.addEventListener("load", () => {
                     var dx = this.shootVelocity*Math.sin(this.shootAngle);
                     var dy = this.shootVelocity*Math.cos(this.shootAngle);
                     game.spawns.push(new Bullet(
-                        this.x/* - dx*this.nextShot*/,
-                        this.y/* - dy*this.nextShot*/,
+                        this.x - dx*this.nextShot,
+                        this.y - dy*this.nextShot,
                         dx,
                         dy));
                     this.shootAngle += this.shootAngleInc;
@@ -178,6 +178,10 @@ window.addEventListener("load", () => {
     };
 
     function update(dt) {
+        if (game.health.value <= 0) {
+            return;
+        }
+
         game.spawns.forEach(spawn => game.actors.push(spawn));
         game.spawns = []
 
