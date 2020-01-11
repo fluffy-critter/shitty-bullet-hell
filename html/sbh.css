@@ -72,17 +72,19 @@ body {
 #enemies div {
     position: absolute;
     z-index: 1;
-    transition: color 3s, font-size 3s;
+    transition: color 3s, font-size 3s, top 3s, left 3s;
     color: white;
+    transform: translate(-50%, -50%);
 }
 
 #enemies .alive {
     cursor: progress;
     transition: text-shadow 1s;
+    text-shadow: black 0px 0px 10px;
 }
 
 #enemies .alive:hover {
-    text-shadow: #f00 0px 0px 3px;
+    text-shadow: #f00 0px 0px 1px;
 }
 
 #enemies .alive .healthBar {
@@ -101,6 +103,7 @@ body {
 #enemies .exploding {
     color: rgba(0,0,0,0);
     font-size: 500%;
+    z-index: -5;
 }
 
 #bullets {

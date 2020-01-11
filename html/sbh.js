@@ -1,9 +1,11 @@
 window.addEventListener("load", () => {
     "use strict";
 
+    var score = 0;
+
     class Actor {
-        constructor(container) {
-            this.element = document.createElement("div");
+        constructor(element, container) {
+            this.element = document.createElement(element);
             container.appendChild(this.element);
             this.x = 0;
             this.y = 0;
@@ -29,11 +31,21 @@ window.addEventListener("load", () => {
             var style = this.element.style;
             style.setProperty('left', Math.floor(this.x) + 'px');
             style.setProperty('top', Math.floor(this.y) + 'px');
+
+            // despawn enemies as soon as they leave the screen
+            if (this.x > arena.clientWidth || this.x + this.width < 0 ||
+                this.y > arena.clientHeight || this.y + this.height < 0) {
+                this.die();
+                return false;
+            }
+
             return true;
         }
 
         die() {
-            this.element.parentElement.removeChild(this.element);
+            if (this.element.parentElement) {
+                this.element.parentElement.removeChild(this.element);
+            }
         }
     }
 
@@ -71,14 +83,16 @@ window.addEventListener("load", () => {
 
     class Enemy extends Actor {
         constructor() {
-            super(enemies);
+            super("div", enemies);
             this.content = "👾";
             this.element.setAttribute("class", "alive");
 
-            this.healthBar = new HealthBar(this.element, 100);
+            this.size = (Math.random()*3 + 1)*100;
+            this.element.style.setProperty("font-size", this.size + '%')
+            this.healthBar = new HealthBar(this.element, this.size);
 
-            this.x = Math.random()*(arena.clientWidth - this.width);
-            this.y = Math.random()*(arena.clientHeight/2 - this.height);
+            this.x = Math.random()*(arena.clientWidth - this.width) + this.width/2;
+            this.y = Math.random()*(arena.clientHeight/2 - this.height) + this.height/2;
 
             this.hurting = false;
             this.element.addEventListener("mouseover", () => this.hurting = true);
@@ -86,14 +100,17 @@ window.addEventListener("load", () => {
         }
 
         update(dt) {
-            this.x += (Math.random() - Math.random())*dt/10;
-            this.y += (Math.random() - Math.random())*dt/10;
+            this.x += (Math.random() - Math.random())*dt*this.size/1000;
+            this.y += (Math.random() - Math.random())*dt*this.size/1000;
 
             if (this.hurting) {
+                score += dt;
                 this.healthBar.value -= dt/10;
                 if (this.healthBar.value <= 0) {
+                    score += Math.floor(this.healthBar.maxVal);
                     this.content = "💥";
                     this.element.setAttribute("class", "exploding");
+                    this.element.style.setProperty("font-size", (this.size*5) + '%');
                     this.element.addEventListener("transitionend", () => this.die());
                     return false;
                 }
@@ -115,12 +132,12 @@ window.addEventListener("load", () => {
     function update(dt) {
         lastSpawn += dt;
         if (lastSpawn > 1000) {
-            console.log(lastSpawn);
             actors.push(new Enemy());
             lastSpawn = 0;
         }
 
-        actors.filter(actor => actor.update(dt));
+        actors = actors.filter(actor => actor.update(dt));
+        document.getElementById("score").innerText = score;
     }
 
     var lastTime = new Date();
