@@ -1,0 +1,133 @@
+@import url('Kubasta.css');
+
+html {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: black;
+    color: white;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+* {
+    cursor: crosshair;
+}
+
+#title {
+    display: none;
+}
+
+#paused {
+    display: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+}
+
+#paused h1 {
+    position: relative;
+    top: 50%;
+    text-align: center;
+    transform: translate(0, -50%);
+}
+
+.healthBar {
+    position: absolute;
+    transition: background-color 1s;
+}
+
+.healthBar.full {
+    background-color: #0f0;
+}
+
+.healthBar.medium {
+    background-color: #ff0;
+}
+
+.healthBar.low {
+    background-color: #f00;
+}
+
+.healthBar.empty {
+    background-color: rgba(0,0,0,0);
+}
+
+#arena {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+#arena .healthBar {
+    height: 32px;
+    bottom: 0;
+}
+
+#enemies div {
+    position: absolute;
+    z-index: 1;
+    transition: color 3s, font-size 3s;
+    color: white;
+}
+
+#enemies .alive {
+    cursor: progress;
+    transition: text-shadow 1s;
+}
+
+#enemies .alive:hover {
+    text-shadow: #f00 0px 0px 3px;
+}
+
+#enemies .alive .healthBar {
+    display: block;
+    top: -2px;
+    height: 2px;
+    z-index: -10;
+
+    visibility: hidden;
+}
+
+#enemies .alive:hover .healthBar {
+    visibility: visible;
+}
+
+#enemies .exploding {
+    color: rgba(0,0,0,0);
+    font-size: 500%;
+}
+
+#bullets {
+    z-index: 100;
+}
+#bullets li {
+    position: absolute;
+    cursor: zoom-out;
+}
+
+#score {
+    position: absolute;
+    font-family: 'Kubasta', sans-serif;
+    top: 1ex;
+    left: 1ex;
+    color: yellow;
+    font-size: small;
+    text-shadow: yellow 0px 0px 5px;
+    z-index: -10;
+    font-size: large;
+}
+
+#hp {
+    position: absolute;
+    width: 100%;
+    height: 16px;
+    background-color: #0f0;
+    left: 0;
+    bottom: 0;
+}
