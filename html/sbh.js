@@ -93,6 +93,7 @@ window.addEventListener("load", () => {
             this.dy = dy;
 
             this.element.addEventListener("mouseover", () => game.health.value--);
+            this.update(0);
         }
 
         update(dt) {
