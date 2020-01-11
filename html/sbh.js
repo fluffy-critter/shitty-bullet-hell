@@ -1,7 +1,7 @@
 window.addEventListener("load", () => {
     "use strict";
 
-    var score = 0;
+    var player;
 
     class Actor {
         constructor(element, container) {
@@ -54,8 +54,8 @@ window.addEventListener("load", () => {
             this.element = document.createElement("div");
             this.element.setAttribute("class", "healthBar");
             parent.appendChild(this.element);
-            this.value = maxVal;
             this.maxVal = maxVal;
+            this.value = maxVal;
         }
 
         get value() {
@@ -78,7 +78,14 @@ window.addEventListener("load", () => {
                 this.element.setAttribute("class", "healthBar empty");
             }
         }
+    }
 
+    class Bullet extends Actor {
+        constructor(bullets, dx, dy) {
+            super("li", bullets);
+
+            this.element.addEventListener("mouseover", () => player.health.value--);
+        }
     }
 
     class Enemy extends Actor {
@@ -104,10 +111,10 @@ window.addEventListener("load", () => {
             this.y += (Math.random() - Math.random())*dt*this.size/1000;
 
             if (this.hurting) {
-                score += dt;
+                player.score += Math.floor(dt*this.size);
                 this.healthBar.value -= dt/10;
                 if (this.healthBar.value <= 0) {
-                    score += Math.floor(this.healthBar.maxVal);
+                    player.score += Math.floor(this.healthBar.maxVal*10);
                     this.content = "💥";
                     this.element.setAttribute("class", "exploding");
                     this.element.style.setProperty("font-size", (this.size*5) + '%');
@@ -121,12 +128,14 @@ window.addEventListener("load", () => {
     }
 
     var arena = document.getElementById("arena");
-    var hp = document.getElementById("hp");
+
     var enemies = document.getElementById("enemies");
-    var bullets = document.getElementById("bullets");
     var actors = [];
 
-    var health = new HealthBar(arena, 100);
+    player = {
+        score: 0,
+        health: new HealthBar(arena, 1000),
+    };
 
     var lastSpawn = 0;
     function update(dt) {
@@ -137,7 +146,7 @@ window.addEventListener("load", () => {
         }
 
         actors = actors.filter(actor => actor.update(dt));
-        document.getElementById("score").innerText = score;
+        document.getElementById("score").innerText = player.score;
     }
 
     var lastTime = new Date();

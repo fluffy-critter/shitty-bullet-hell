@@ -68,6 +68,7 @@ body {
 #arena .healthBar {
     height: 32px;
     bottom: 0;
+    opacity: 100%;
 }
 
 #enemies div {
