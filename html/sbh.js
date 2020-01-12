@@ -228,9 +228,7 @@ window.addEventListener("load", () => {
                     this.element.setAttribute("class", "exploding");
                     this.element.style.setProperty("font-size", (this.size*5) + '%');
                     this.element.addEventListener("transitionend", () => this.die());
-                    for (var i = 0; i < 3; i++) {
-                        onKill();
-                    }
+                    onKill();
                     return false;
                 }
             } else {
