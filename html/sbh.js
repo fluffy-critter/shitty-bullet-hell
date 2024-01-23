@@ -7,6 +7,52 @@ window.addEventListener("load", () => {
     var bullets = document.getElementById("bullets");
     var score = document.getElementById("score");
 
+    var music = [];
+    var musicIdx = 0;
+
+    function flipMusic() {
+        console.log("Playing music track " + musicIdx);
+        music[musicIdx].currentTime = 0;
+        music[musicIdx].play();
+        musicIdx = 1 - musicIdx;
+        window.setTimeout(flipMusic, 72000);
+    }
+
+    document.getElementById("title").addEventListener("click", e => {
+        document.getElementById("title").style.setProperty("display", "none");
+        for (var i = 0; i < 2; i++) {
+            music[i] = new Audio("veggie-baggle.mp3");
+        }
+
+        var musicStarted = false;
+        music[0].addEventListener("canplaythrough", () => {
+            if (!musicStarted) {
+                musicStarted = true;
+                flipMusic();
+            }
+        });
+
+        frame();
+    });
+
+    arena.addEventListener("mousemove", e => {
+        if (game) {
+            game.mx = e.clientX;
+            game.my = e.clientY;
+        }
+    });
+
+    function onKill() {
+        game.killed++;
+        game.spawns.push(new Enemy());
+        if (game.killed % 5 == 0) {
+            game.spawns.push(new Enemy());
+        }
+        if (game.killed % 9 == 0) {
+            game.spawns.push(new Bee());
+        }
+    }
+
     class Actor {
         constructor(element, container) {
             this.element = document.createElement(element);
@@ -85,10 +131,10 @@ window.addEventListener("load", () => {
     }
 
     class Bullet extends Actor {
-        constructor(x, y, dx, dy) {
+        constructor(x, y, dx, dy, adjust) {
             super("li", bullets);
-            this.x = x;
-            this.y = y;
+            this.x = x + dx*adjust;
+            this.y = y + dy*adjust;
             this.dx = dx;
             this.dy = dy;
 
@@ -99,14 +145,14 @@ window.addEventListener("load", () => {
         update(dt) {
             this.x += this.dx*dt;
             this.y += this.dy*dt;
-            return super.update();
+            return super.update(dt);
         }
     }
 
     class Enemy extends Actor {
         constructor() {
             super("div", enemies);
-            this.content = "👾";
+            this.content = "🍆";
             this.element.setAttribute("class", "alive");
 
             this.size = (Math.random()*3 + 1)*100;
@@ -137,15 +183,11 @@ window.addEventListener("load", () => {
                 this.healthBar.value -= dt/10;
                 if (this.healthBar.value <= 0) {
                     game.score += Math.floor(this.healthBar.maxVal*10);
-                    this.content = "💥";
+                    this.content = "✨";
                     this.element.setAttribute("class", "exploding");
                     this.element.style.setProperty("font-size", (this.size*5) + '%');
                     this.element.addEventListener("transitionend", () => this.die());
-                    game.killed++;
-                    game.spawns.push(new Enemy());
-                    if (game.killed % 5 == 0) {
-                        game.spawns.push(new Enemy());
-                    }
+                    onKill();
                     return false;
                 }
             } else {
@@ -155,17 +197,85 @@ window.addEventListener("load", () => {
                     var dx = this.shootVelocity*Math.sin(this.shootAngle);
                     var dy = this.shootVelocity*Math.cos(this.shootAngle);
                     game.spawns.push(new Bullet(
-                        this.x + dx*this.nextShot,
-                        this.y + dy*this.nextShot,
+                        this.x,
+                        this.y,
                         dx,
-                        dy));
+                        dy,
+                        this.nextShot));
                     this.shootAngle += this.shootAngleInc;
 
                     this.nextShot += this.shootFreq;
                 }
             }
 
-            return super.update();
+            return super.update(dt);
+        }
+    }
+
+    class Bee extends Actor {
+        constructor() {
+            super("div", enemies);
+            this.content = "🍑";
+            this.element.setAttribute("class", "alive");
+
+            this.size = (Math.random() + 1)*Math.min(arena.clientWidth/4, arena.clientHeight/8);
+            this.element.style.setProperty("font-size", this.size + 'px');
+            this.healthBar = new HealthBar(this.element, this.size*3);
+
+            this.x = this.cx = Math.random()*arena.clientWidth/10 + arena.clientWidth/2;
+            this.y = this.cy = Math.random()*arena.clientHeight/10 + arena.clientHeight/4;
+
+            this.hurting = false;
+            this.element.addEventListener("mouseover", () => this.hurting = true);
+            this.element.addEventListener("mouseout", () => this.hurting = false);
+
+            this.phase = Math.random()*Math.PI*2;
+            this.freqX = Math.random()*0.001 + 0.001;
+            this.freqY = Math.random()*0.001 + 0.001;
+            this.dx = Math.random()*Math.min(this.x, arena.clientWidth - this.cx) - this.size/3;
+            this.dy = Math.random()*Math.min(this.y, arena.clientHeight - this.cy) - this.size/3;
+
+            this.shootFreq = Math.random()*30 + 20;
+            this.shootVelocity = Math.random()*0.5 + 0.07;
+            this.nextShot = Math.random()*1000 + 100;
+        }
+
+        update(dt) {
+            this.phase += dt;
+            this.x = this.cx + Math.sin(this.phase*this.freqX)*this.dx;
+            this.y = this.cy + Math.sin(this.phase*this.freqY)*this.dy;
+
+            if (this.hurting) {
+                this.x += (Math.random() - Math.random())*20;
+                this.y += (Math.random() - Math.random())*20;
+                game.score += Math.floor(dt*this.size);
+                this.healthBar.value -= dt/10;
+                if (this.healthBar.value <= 0) {
+                    game.score += Math.floor(this.healthBar.maxVal*10);
+                    this.content = "✨";
+                    this.element.setAttribute("class", "exploding");
+                    this.element.style.setProperty("font-size", (this.size*5) + '%');
+                    this.element.addEventListener("transitionend", () => this.die());
+                    onKill();
+                    return false;
+                }
+            } else {
+                this.nextShot -= dt;
+                while (this.nextShot <= 0) {
+                    var ox = game.mx - this.x;
+                    var oy = game.my - this.y;
+                    var len = Math.sqrt(ox*ox + oy*oy);
+                    game.spawns.push(new Bullet(
+                        this.x,
+                        this.y,
+                        ox*this.shootVelocity/len,
+                        oy*this.shootVelocity/len,
+                        this.nextShot));
+                    this.nextShot += this.shootFreq;
+                }
+            }
+
+            return super.update(dt);
         }
     }
 
@@ -203,5 +313,5 @@ window.addEventListener("load", () => {
         (window.requestAnimationFrame || window.setTimeout)(frame, 1000.0/30);
     }
 
-    frame();
+    // frame();
 });
