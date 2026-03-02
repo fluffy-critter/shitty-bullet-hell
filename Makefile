@@ -9,4 +9,4 @@ build/sbh.zip: $(wildcard html/*)
 
 .PHONY: upload
 upload: build/sbh.zip
-	butler push build/sbh.zip fluffy/shitty-bullet-hell:html
+	butler push build/sbh.zip fluffy/dongs:html

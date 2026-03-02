@@ -113,6 +113,7 @@ body {
     cursor: progress;
     transition: text-shadow 1s;
     text-shadow: black 0px 0px 10px;
+    z-index: 100;
 }
 
 #enemies .alive:hover {
@@ -141,7 +142,7 @@ body {
 }
 
 #bullets li {
-    z-index: 100;
+    z-index: 10;
     position: absolute;
     cursor: zoom-out;
     font-size: x-large;
